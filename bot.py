@@ -9,18 +9,12 @@ load_dotenv()
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-if not TELEGRAM_BOT_TOKEN or not GEMINI_API_KEY:
-    raise ValueError("Необходимо установить TELEGRAM_BOT_TOKEN и GEMINI_API_KEY в .env файле")
-
 genai.configure(api_key=GEMINI_API_KEY)
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
 print("Загрузка модели Whisper... Это может занять некоторое время.")
 whisper_model = whisper.load_model("small")
 print("Модель Whisper загружена.")
-
-if not os.path.exists("downloads"):
-    os.makedirs("downloads")
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
@@ -46,7 +40,7 @@ def handle_audio(message):
 
         downloaded_file = bot.download_file(file_info.file_path)
         file_ext = file_info.file_path.split('.')[-1]
-        file_path = os.path.join("downloads", f"audio_{message.message_id}.{file_ext}")
+        file_path = f"audio_{message.message_id}.{file_ext}"
         with open(file_path, 'wb') as new_file:
             new_file.write(downloaded_file)
 

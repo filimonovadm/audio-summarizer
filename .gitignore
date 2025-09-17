@@ -13,10 +13,10 @@ env.bak
 venv.bak
 
 # Audio files
-downloads/
 *.m4a
 *.mp3
 *.wav
+*.ogg
 
 # IDEs and editors
 .idea/
