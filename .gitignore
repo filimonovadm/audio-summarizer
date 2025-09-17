@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak
+venv.bak
+
+# Audio files
+downloads/
+transcripts/
+*.m4a
+*.mp3
+*.wav
+
+# IDEs and editors
+.idea/
+.vscode/

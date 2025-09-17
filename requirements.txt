@@ -1,0 +1,4 @@
+pyTelegramBotAPI
+google-generativeai
+openai-whisper
+python-dotenv
