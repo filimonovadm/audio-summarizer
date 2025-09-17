@@ -14,7 +14,6 @@ venv.bak
 
 # Audio files
 downloads/
-transcripts/
 *.m4a
 *.mp3
 *.wav
