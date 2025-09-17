@@ -13,7 +13,7 @@ genai.configure(api_key=GEMINI_API_KEY)
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
 print("Загрузка модели Whisper... Это может занять некоторое время.")
-whisper_model = whisper.load_model("small")
+whisper_model = whisper.load_model("base")
 print("Модель Whisper загружена.")
 
 @bot.message_handler(commands=['start', 'help'])
@@ -51,7 +51,14 @@ def handle_audio(message):
             bot.reply_to(message, "Не удалось распознать речь в аудиофайле.")
             return
 
-        bot.send_message(message.chat.id, "Текст успешно распознан. Создаю краткий отчет с помощью Gemini...")
+        bot.send_message(message.chat.id, "**Распознанный текст:**")
+        if len(transcript_text) > 4096:
+            for i in range(0, len(transcript_text), 4096):
+                bot.send_message(message.chat.id, transcript_text[i:i+4096])
+        else:
+            bot.send_message(message.chat.id, transcript_text)
+
+        bot.send_message(message.chat.id, "Текст отправлен. Создаю краткий отчет...")
 
         model = genai.GenerativeModel('models/gemini-1.5-pro-latest')
         summary_prompt = f"""Сделай краткую выжимку (summary) и выдели основные тезисы из следующего текста:
