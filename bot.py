@@ -36,7 +36,20 @@ def handle_audio(message):
         else:
             return
 
-        bot.reply_to(message, "Аудио получено, начинаю обработку...")
+        duration = None
+        if message.audio:
+            duration = message.audio.duration
+        elif message.voice:
+            duration = message.voice.duration
+
+        processing_message = "Аудио получено, начинаю обработку..."
+        if duration:
+            estimated_seconds = duration * 2
+            minutes = estimated_seconds // 60
+            seconds = estimated_seconds % 60
+            processing_message += f" Примерное время ожидания: {minutes} мин. {seconds} сек."
+
+        bot.reply_to(message, processing_message)
 
         downloaded_file = bot.download_file(file_info.file_path)
         file_ext = file_info.file_path.split('.')[-1]
@@ -51,21 +64,20 @@ def handle_audio(message):
             bot.reply_to(message, "Не удалось распознать речь в аудиофайле.")
             return
 
-        bot.send_message(message.chat.id, "**Распознанный текст:**")
-        if len(transcript_text) > 4096:
-            for i in range(0, len(transcript_text), 4096):
-                bot.send_message(message.chat.id, transcript_text[i:i+4096])
-        else:
-            bot.send_message(message.chat.id, transcript_text)
-
-        bot.send_message(message.chat.id, "Текст отправлен. Создаю краткий отчет...")
-
+        bot.send_message(message.chat.id, "Текст обработан, создаю краткий отчет...")
         model = genai.GenerativeModel('models/gemini-1.5-pro-latest')
-        summary_prompt = f"""Сделай краткую выжимку (summary) и выдели основные тезисы из следующего текста:
+
+        correction_prompt = f"""Исправь грамматические и орфографические ошибки в следующем тексте, который был получен после автоматического распознавания речи. Восстанови логику и смысл, если они нарушены. Не добавляй ничего нового, только исправляй существующий текст. Вот текст:
 
 {transcript_text}"""
-        response = model.generate_content(summary_prompt)
-        summary_text = response.text
+        correction_response = model.generate_content(correction_prompt)
+        corrected_text = correction_response.text
+
+        summary_prompt = f"""Сделай краткую выжимку (summary) и выдели основные тезисы из следующего текста:
+
+{corrected_text}"""
+        summary_response = model.generate_content(summary_prompt)
+        summary_text = summary_response.text
 
         bot.reply_to(message, f"""**Краткий отчет:**
 
