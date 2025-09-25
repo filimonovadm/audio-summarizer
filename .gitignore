@@ -21,3 +21,6 @@ venv.bak
 # IDEs and editors
 .idea/
 .vscode/
+
+# Log files
+bot.log

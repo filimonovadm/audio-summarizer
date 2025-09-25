@@ -3,6 +3,15 @@ import telebot
 import google.generativeai as genai
 import whisper
 from dotenv import load_dotenv
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    filename='bot.log',
+    filemode='a'
+)
 
 load_dotenv()
 
@@ -18,10 +27,14 @@ print("Модель Whisper загружена.")
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
+    user = message.from_user
+    logging.info(f"User {user.id} ({user.username}) started the bot. Name: {user.first_name} {user.last_name}")
     bot.reply_to(message, "Привет! Отправь мне аудиофайл, и я сделаю краткую выжимку из него с помощью Gemini.")
 
 @bot.message_handler(content_types=['document', 'audio', 'voice'])
 def handle_audio(message):
+    user = message.from_user
+    logging.info(f"User {user.id} ({user.username}) sent a file. Name: {user.first_name} {user.last_name}")
     file_path = None
     try:
         if message.document:
@@ -67,23 +80,24 @@ def handle_audio(message):
         bot.send_message(message.chat.id, "Текст обработан, создаю краткий отчет...")
         model = genai.GenerativeModel('models/gemini-1.5-pro-latest')
 
-        correction_prompt = f"""Исправь грамматические и орфографические ошибки в следующем тексте, который был получен после автоматического распознавания речи. Восстанови логику и смысл, если они нарушены. Не добавляй ничего нового, только исправляй существующий текст. Вот текст:
+        correction_prompt = f'''Исправь грамматические и орфографические ошибки в следующем тексте, который был получен после автоматического распознавания речи. Восстанови логику и смысл, если они нарушены. Не добавляй ничего нового, только исправляй существующий текст. Вот текст:
 
-{transcript_text}"""
+{transcript_text}'''
         correction_response = model.generate_content(correction_prompt)
         corrected_text = correction_response.text
 
-        summary_prompt = f"""Сделай краткую выжимку (summary) и выдели основные тезисы из следующего текста:
+        summary_prompt = f'''Сделай краткую выжимку (summary) и выдели основные тезисы из следующего текста:
 
-{corrected_text}"""
+{corrected_text}'''
         summary_response = model.generate_content(summary_prompt)
         summary_text = summary_response.text
 
-        bot.reply_to(message, f"""**Краткий отчет:**
+        bot.reply_to(message, f'''**Краткий отчет:**
 
-{summary_text}""" )
+{summary_text}''' )
 
     except Exception as e:
+        logging.error(f"Error processing file for user {user.id}: {e}")
         bot.reply_to(message, f"Произошла непредвиденная ошибка: {e}")
     finally:
         if file_path and os.path.exists(file_path):
