@@ -1,0 +1,7 @@
+pyTelegramBotAPI
+google-generativeai
+openai-whisper
+python-dotenv
+Flask
+firebase-functions
+firebase-admin
